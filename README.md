@@ -1,6 +1,3 @@
-# SQL-Chronicles
-My journey through the world of SQL, documenting my learning, practice queries, and projects. From basic syntax to advanced concepts, this repository chronicles my progress.
-
 # SQL Chronicles 🚀
 
 Welcome to my SQL Chronicles! This repository serves as a personal log of my journey into the fascinating world of Structured Query Language (SQL). Here, I'll be documenting my learning process, practicing various SQL concepts, and solving real-world data challenges.
