@@ -1,5 +1,50 @@
 
--- INNER JOIN
+-- Understanding INNER JOIN in SQL
+
+-- INNER JOIN SQL mein do ya do se zyada tables se data combine karne ka sabse commonly used method hai. Iska maqsad sirf 
+-- un rows ko return karna hai jinke liye JOIN condition ke mutabiq dono tables mein matching records maujood hon.
+
+-- Concept:
+-- INNER JOIN bilkul Venn Diagram ke "intersection" (mushtarak hisse) ki tarah kaam karta hai. Agar do tables hain, Table A aur Table B, aur tum unko
+-- INNER JOIN karte ho, toh result set mein sirf woh rows aayengi jinke JOIN columns ki values Table A aur Table B dono mein exactly match karti hon.
+
+-- Matching Records Only: Sirf woh records shamil honge jinke liye ON clause mein specify ki gayi condition (usually common columns ki equality) TRUE return karti hai.
+-- No Non-Matching Records: Agar kisi table mein koi record hai jiska matching record doosri table mein nahi hai, toh woh record result set mein shamil nahi hoga.
+-- Analogy (Misaal):
+
+-- Imagine karo tumhare paas do lists hain:
+
+-- List A (Table A): Tumhare "College Ke Dost" (Friends from College).
+-- List B (Table B): Tumhare "School Ke Dost" (Friends from School).
+-- INNER JOIN se kya milega?
+
+-- Sirf woh log jo tumhare "College Ke Dost" bhi hain AUR "School Ke Dost" bhi hain. Yaani, woh dost jo tumne College aur School dono jagah par banaye hain.
+
+
+-- Example With Our Tables (customers & orders):
+
+-- Hum chahte hain ke sirf un customers ke orders ki details milen jinhone actually order kiya hai. Yaani, customers aur orders tables mein customerNumber par matching records.
+
+SELECT
+    c.customerName,    -- Customer ka naam customers table se
+    o.orderNumber,     -- Order number orders table se
+    o.orderDate,       -- Order date orders table se
+    o.status           -- Order status orders table se
+FROM
+    customers c        -- Customers table (Left side, but order doesn't strictly matter for INNER JOIN)
+INNER JOIN
+    orders o ON c.customerNumber = o.customerNumber; -- Orders table (Right side)
+    
+-- ON condition: customers table ka customerNumber orders table ke customerNumber se match ho.
+
+-- What the Output Shows:
+-- Output mein sirf woh rows shamil hongi jahan customers table ke customerNumber ka orders table mein customerNumber se match milta hai.
+-- Agar koi customer hai jisne abhi tak koi order nahi kiya (yani customers table mein record hai lekin orders table mein koi matching customerNumber nahi), toh woh customer output mein shamil nahi hoga.
+-- Agar koi order hai jiska customerNumber kisi wajah se customers table mein nahi hai (data inconsistency, rarely happens), toh woh order bhi output mein shamil nahi hoga.
+
+
+
+
 
 -- SQL Practice Questions - INNER JOIN
 
@@ -127,13 +172,155 @@ limit 5;
 
 
 -- Question 2: Customers Who Ordered Products from 'Classic Cars' or 'Motorcycles' (customers, orders, orderdetails, products tables)
-Un customerName aur city ko nikalen jinhone productLine 'Classic Cars' ya 'Motorcycles' se koi bhi product order kiya hai. Results mein koi duplicate customer na ho.
-(Hint: INNER JOIN multiple tables, WHERE with OR, DISTINCT)
+-- Un customerName aur city ko nikalen jinhone productLine 'Classic Cars' ya 'Motorcycles' se koi bhi product order kiya hai. 
+-- Results mein koi duplicate customer na ho.
+-- (Hint: INNER JOIN multiple tables, WHERE with OR, DISTINCT)
 
-Question 3: Employees with No Sales to Specific Countries (employees, customers tables)
-Un firstName, lastName, aur jobTitle nikalen un employees ke jinhone kabhi bhi 'USA' ya 'Canada' ke customers ko sales nahi ki hain.
-(Hint: NOT IN with a subquery, or LEFT JOIN then WHERE IS NULL - INNER JOIN context mein NOT IN better hai abhi. Also, GROUP BY employee details)
+select DISTINCT c.customerName,  c.city, p.productLine
+from products p inner join orderdetails od 
+on p.productCode = od.productCode 
+inner join
+		orders o on o.orderNumber = od.orderNumber
+inner join 
+		customers c  on  o.customerNumber =c.customerNumber
+ where 
+		p.productLine IN ('Classic Cars' ,'Motorcycles');
+        
+    
+-- Question 3: Employees with No Sales to Specific Countries (employees, customers tables)
+-- Un firstName, lastName, aur jobTitle nikalen un employees ke jinhone kabhi bhi 'USA' ya 'Canada' ke customers ko sales nahi ki hain.
+-- (Hint: NOT IN with a subquery, or LEFT JOIN then WHERE IS NULL - INNER JOIN context mein NOT IN better hai abhi. Also, GROUP BY employee details)
 
-Question 4: Orders with Total Items and Total Value (orders, orderdetails tables)
-Har orderNumber ke liye orderDate, total number_of_items (total quantityOrdered per order), aur total order_value (sum of quantityOrdered * priceEach per order) nikalen.
-(Hint: INNER JOIN, GROUP BY, SUM)
+select * from employees;
+select  * from customers;
+
+select  e.firstName, e.lastName, e.jobTitle
+from employees e 
+where 
+	e.employeeNumber NOT IN (
+        SELECT DISTINCT c.salesRepEmployeeNumber
+        FROM customers c
+        WHERE c.country IN ('USA', 'Canada')
+    )
+GROUP BY -- Agar koi employee multiple times ata ho result set mein to group karlo
+    e.employeeNumber, e.firstName, e.lastName, e.jobTitle;
+
+
+
+-- Question 4: Orders with Total Items and Total Value (orders, orderdetails tables)
+-- Har orderNumber ke liye orderDate, total number_of_items (total quantityOrdered per order), 
+-- aur total order_value (sum of quantityOrdered * priceEach per order) nikalen.
+-- (Hint: INNER JOIN, GROUP BY, SUM)
+
+select * from orderdetails;
+select * from orders;
+
+select o.orderNumber, o.orderDate, sum(od.quantityOrdered*od.priceEach) as total_revenue, count(od.quantityOrdered) as total_quantityOrdered_per_order
+from  orderdetails od  inner  join  orders o 
+on   od.orderNumber =  o.orderNumber
+group by o.orderNumber, o.orderDate;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- SQL Practice Questions - INNER JOIN (Ultimate Challenge Set - Remaining Qs)
+-- Question 3: Employees with No Sales to Specific Countries (employees, customers tables)
+-- Un firstName, lastName, aur jobTitle nikalen un employees ke jinhone kabhi bhi 'USA' ya 'Canada' ke customers ko sales nahi ki hain.
+-- (Hint: NOT IN with a subquery, or LEFT JOIN then WHERE IS NULL - INNER JOIN context mein NOT IN better hai abhi. Also, GROUP BY employee details)
+
+select e.firstName, e.lastName, e.jobTitle
+from employees e
+WHERE e.employeeNumber NOT IN (
+select distinct c.salesRepEmployeeNumber
+FROM customers c 
+where c.country IN ("USA","Canada"))
+group by e.firstName, e.lastName, e.jobTitle;
+
+
+-- Question 4: Orders with Total Items and Total Value (orders, orderdetails tables)
+-- Har orderNumber ke liye orderDate, total number_of_items (total quantityOrdered per order), 
+-- aur total order_value (sum of quantityOrdered * priceEach per order) nikalen.
+-- (Hint: INNER JOIN, GROUP BY, SUM)
+
+select o.orderNumber,o.orderDate,  sum(od.quantityOrdered*od.priceEach) as total_revenue, count(od.quantityOrdered) as qty_ordered_per_order
+from orders o inner join orderdetails od
+on od.orderNumber = o.orderNumber
+group by o.orderNumber;
+
+
+
+
+
+
+
+
+
+
+-- SQL Practice Questions - INNER JOIN (The Grand Finale Challenge)
+-- Question 1: Product Sales Performance by Vendor and Product Line (products, orderdetails tables)
+-- Har productLine aur uske productVendor ke liye total_quantity_sold aur total_revenue (quantityOrdered * priceEach) nikalen. 
+-- Sirf un combinations ko show karein jinki total_revenue 100,000 se zyada hai. Results ko total_revenue ke descending order mein sort karein.
+-- (Hint: INNER JOIN, GROUP BY multiple columns, SUM, HAVING)
+
+select *   from  products;
+select * from orderdetails;
+
+select  p.productLine,p.productVendor, count(od.quantityOrdered) as total_quantity_sold, sum(od.quantityOrdered * od.priceEach) as total_revenue
+from products p inner join orderdetails od 
+on p.productCode =  od.productCode
+group by p.productLine,p.productVendor
+having total_revenue > 100000 
+order by total_revenue DESC;
+
+
+
+-- Question 2: Customers Who Made Purchases in Both 2003 and 2004 (customers, orders tables)
+-- Un customerName aur customerNumber ko nikalen jinhone 2003 aur 2004 dono saalon mein kam se kam ek order place kiya ho.
+-- (Hint: INNER JOIN (same tables ko do bar join kar sakte ho ya subquery use kar sakte ho with AND EXIST or IN with year filtering in subqueries.
+ -- GROUP BY and HAVING COUNT(DISTINCT YEAR()) could also work. Tum INNER JOIN context mein solve karna)
+ 
+SELECT
+    c.customerName,
+    c.customerNumber
+FROM
+    customers c
+INNER JOIN
+    orders o ON c.customerNumber = o.customerNumber
+WHERE
+    YEAR(o.orderDate) IN (2003, 2004) -- Pehle sirf 2003 ya 2004 ke orders filter kiye
+GROUP BY
+    c.customerNumber, c.customerName -- Customer par group kiya
+HAVING
+    COUNT(DISTINCT YEAR(o.orderDate)) = 2; -- Sirf un customers ko rakha jinhone 2 unique saalon mein (2003 & 2004) order kiya
+
+
+-- Question 3: Employees Managing Customers with Specific Credit Limits (employees, customers tables)
+-- Un firstName, lastName, aur jobTitle nikalen un employees ke jinhone aise customers ko manage kiya hai jinka creditLimit 50,000 se 70,000 
+-- (inclusive) ke beech mein hai, aur un employees ne kam se kam 3 aise unique customers ko handle kiya ho.
+-- (Hint: INNER JOIN, WHERE with BETWEEN, GROUP BY, COUNT(DISTINCT), HAVING)
+
+SELECT
+    e.firstName,
+    e.lastName,
+    e.jobTitle,
+    COUNT(DISTINCT c.customerNumber) AS num_customers_in_credit_range -- Optional: customers count bhi dikhana
+FROM
+    employees e
+INNER JOIN
+    customers c ON e.employeeNumber = c.salesRepEmployeeNumber
+WHERE
+    c.creditLimit BETWEEN 50000 AND 70000 -- Correct use of BETWEEN
+GROUP BY
+    e.employeeNumber, e.firstName, e.lastName, e.jobTitle
+HAVING
+    COUNT(DISTINCT c.customerNumber) >= 3;
