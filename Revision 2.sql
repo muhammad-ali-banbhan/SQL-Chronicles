@@ -108,10 +108,25 @@ where mobile_model LIKE "%Note%";
 -- Sawal: Mujhe un saari transactions ki details dikhao jo May 15, 2021 aur August 15, 2021 ke darmiyan hui hain.
 -- Transaction ID, Transaction Date, Brand, Mobile Model, Units Sold, aur Price Per Unit columns show karna.
 
-select * from mobile_sales;
-
-select transaction_id, brand, mobile_model, units_sold, price_per_unit
-from mobile_sales
-where (month_num between 5 and 8)
-		AND (day_of_month between 15 and 15)
-        AND  year_num = 2021;
+SELECT
+    transaction_id,
+    -- Assuming your table has Day, Month, Year columns
+    -- CONCAT(year_num, '-', month_num, '-', day_of_month) AS transaction_date_formatted, -- Agar date ko format kar ke dikhana hai
+    brand,
+    mobile_model,
+    units_sold,
+    price_per_unit
+FROM
+    mobile_sales
+WHERE
+    (
+        (year_num = 2021 AND month_num = 5 AND day_of_month >= 15) -- 2021 May, 15th ya uske baad
+        OR
+        (year_num = 2021 AND month_num > 5 AND month_num < 8)     -- 2021 June aur July ke saare din
+        OR
+        (year_num = 2021 AND month_num = 8 AND day_of_month <= 15) -- 2021 Aug, 15th ya usse pehle
+    );
+    
+    
+    
+    
