@@ -172,3 +172,6 @@ SELECT INSTR(Customer_Name, 'Brown') AS position FROM sales_data;
  SELECT Customer_Name, gender,
        IF(gender ='Female','Yes','No') AS is_female
  FROM sales_data;
+ 
+ 
+ 
